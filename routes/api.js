@@ -71,11 +71,15 @@ module.exports = function (app) {
       let bookid = req.params.id;
       //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
       let response;
-      const requestedBook = await Library.findById(bookid, { __v: 0 });
-      if (requestedBook === null) {
+      try {
+        const requestedBook = await Library.findById(bookid, { __v: 0 });
+        if (requestedBook === null) {
+          response = 'no book exists';
+        } else {
+          response = requestedBook;
+        } 
+      } catch (err){
         response = 'no book exists';
-      } else {
-        response = requestedBook;
       }
       res.json(response);
     })
@@ -85,22 +89,26 @@ module.exports = function (app) {
       let comment = req.body.comment;
       //json res format same as .get
       let response;
-      if (comment) {
-        const requestedBook = await Library.findById(bookid, { __v: 0 });
-        if (requestedBook === null) {
-          response = 'no book exists';
-        } else {
-          requestedBook.comments.push(comment);
-          requestedBook.commentcount = requestedBook.comments.length;
-          const savedBook = await requestedBook.save();
-          if (savedBook === null) {
-            response = "error saving book"
+      try {
+        if (comment) {
+          const requestedBook = await Library.findById(bookid, { __v: 0 });
+          if (requestedBook === null) {
+            response = 'no book exists';
           } else {
-            response = requestedBook;
+            requestedBook.comments.push(comment);
+            requestedBook.commentcount = requestedBook.comments.length;
+            const savedBook = await requestedBook.save();
+            if (savedBook === null) {
+              response = "error saving book"
+            } else {
+              response = requestedBook;
+            }
           }
+        } else {
+          response = 'missing required field comment';
         }
-      } else {
-        response = 'missing required field comment';
+      } catch {
+        response = 'no book exists'
       }
       res.json(response);
     })
@@ -109,16 +117,21 @@ module.exports = function (app) {
       let bookid = req.params.id;
       //if successful response will be 'delete successful'
       let response;
-      const bookToDelete = await Library.findById(bookid);
-      if (bookToDelete === null) {
-        response = 'no book exists';
-      } else {
-        const deleteResponse = await bookToDelete.deleteOne();
-        if (deleteResponse.acknowledged === true) {
-          response = 'delete successful';
+      try {
+        const bookToDelete = await Library.findById(bookid);
+        if (bookToDelete === null) {
+          response = 'no book exists';
         } else {
-          response = 'delete failed';
+          const deleteResponse = await bookToDelete.deleteOne();
+          if (deleteResponse.acknowledged === true) {
+            response = 'delete successful';
+          } else {
+            response = 'delete failed';
+          }
         }
+  
+      } catch {
+        response = 'no book exists';
       }
       res.json(response);
     });
