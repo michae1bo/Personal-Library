@@ -109,6 +109,17 @@ module.exports = function (app) {
       let bookid = req.params.id;
       //if successful response will be 'delete successful'
       let response;
+      const bookToDelete = await Library.findById(bookid);
+      if (bookToDelete === null) {
+        response = 'no book exists';
+      } else {
+        const deleteResponse = await bookToDelete.deleteOne();
+        if (deleteResponse.acknowledged === true) {
+          response = 'delete successful';
+        } else {
+          response = 'delete failed';
+        }
+      }
       res.json(response);
     });
   
