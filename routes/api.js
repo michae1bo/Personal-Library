@@ -80,17 +80,36 @@ module.exports = function (app) {
       res.json(response);
     })
     
-    .post(function(req, res){
+    .post(async function(req, res){
       let bookid = req.params.id;
       let comment = req.body.comment;
       //json res format same as .get
-      res.json();
+      let response;
+      if (comment) {
+        const requestedBook = await Library.findById(bookid, { __v: 0 });
+        if (requestedBook === null) {
+          response = 'no book exists';
+        } else {
+          requestedBook.comments.push(comment);
+          requestedBook.commentcount = requestedBook.comments.length;
+          const savedBook = await requestedBook.save();
+          if (savedBook === null) {
+            response = "error saving book"
+          } else {
+            response = requestedBook;
+          }
+        }
+      } else {
+        response = 'missing required field comment';
+      }
+      res.json(response);
     })
     
-    .delete(function(req, res){
+    .delete(async function(req, res){
       let bookid = req.params.id;
       //if successful response will be 'delete successful'
-      res.json();
+      let response;
+      res.json(response);
     });
   
 };
