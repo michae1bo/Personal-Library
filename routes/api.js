@@ -52,9 +52,16 @@ module.exports = function (app) {
       res.json(response);
     })
     
-    .delete(function(req, res){
+    .delete(async function(req, res){
       //if successful response will be 'complete delete successful'
-      res.json();
+      let response;
+      const deleteResponse = await Library.deleteMany({});
+      if (deleteResponse === null) {
+        response = 'delete not successful';
+      } else {
+        response = 'complete delete successful';
+      }
+      res.json(response);
     });
 
 
